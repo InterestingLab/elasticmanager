@@ -1,0 +1,4 @@
+django==1.8
+django-enumfield==1.2.1
+elasticsearch==2.1.0
+elasticsearch-curator==3.4.0
