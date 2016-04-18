@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djcelery',
     'indices',
 )
 
@@ -101,3 +102,36 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+
+## --- End of Django Config ---
+
+## Celery Related Settings
+
+BROKER_URL = 'redis://172.16.187.65:9103/0'
+# set socket_timeout to prevent worker from stopping working,
+# which is fetch task messages from broker, when using redis as broker
+# see https://github.com/celery/celery/issues/1221
+BROKER_TRANSPORT_OPTIONS = { 'socket_timeout': 30 }
+
+CELERY_RESULT_BACKEND = 'redis://172.16.187.65:9103/0'
+
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+
+# prefetch only 1 task message at a time multiplied by the number of concurrent processes.
+# This is good for long running tasks
+# see http://docs.celeryproject.org/en/latest/userguide/optimizing.html#prefetch-limits
+CELERYD_PREFETCH_MULTIPLIER = 1
+
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+
+## --- End of Celery Config ---
+
+## django-celery config
+
+import djcelery
+djcelery.setup_loader()
+
+## --- End of django-celery Config ---
+
