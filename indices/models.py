@@ -15,7 +15,7 @@ class IndexSet(models.Model):
         STARTED = 0
         STOPPED = 1
 
-    name = models.CharField(max_length=64)
+    name = models.CharField(max_length=64, unique=True)
     description = models.CharField(max_length=256, blank=True)
     index_name_prefix = models.CharField(max_length=256)
     # Note: available timestring defined in:
@@ -34,45 +34,57 @@ class CreateIndexAction(models.Model):
     class Meta:
         db_table = 'create_index_action'
 
-    index_set = models.ForeignKey(IndexSet, on_delete=models.CASCADE)
+    index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
+    num_in_advance = models.IntegerField()
+    # follow the mappings of last existing index
+    follow_mappings = models.BooleanField()
 
 
 class OptimizeIndexAction(models.Model):
     class Meta:
         db_table = 'optimize_index_action'
 
-    index_set = models.ForeignKey(IndexSet, on_delete=models.CASCADE)
+    index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     optimize_after_days = models.IntegerField()
+    target_segment_num = models.IntegerField()
 
 
-class CloseAction(models.Model):
+class CloseIndexAction(models.Model):
     class Meta:
         db_table = 'close_index_action'
 
-    index_set = models.ForeignKey(IndexSet, on_delete=models.CASCADE)
+    index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     close_after_days = models.IntegerField()
 
 
-class DeleteAction(models.Model):
+class DeleteIndexAction(models.Model):
     class Meta:
         db_table = 'delete_index_action'
 
-    index_set = models.ForeignKey(IndexSet, on_delete=models.CASCADE)
+    index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     delete_after_days = models.IntegerField()
 
 
-class SnapshotAction(models.Model):
+class SnapshotIndexAction(models.Model):
     class Meta:
         db_table = 'snapshot_index_action'
 
-    index_set = models.ForeignKey(IndexSet, on_delete=models.CASCADE)
+    index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
 
 
-class IndexMappings(models.Model):
+class AliasIndexAction(models.Model):
     class Meta:
-        db_table = 'index_mappings'
+        db_table = 'alias_index_action'
+
+    index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
 
 
-class IndexSettings(models.Model):
-    class Meta:
-        db_table = 'index_settings'
+# I don't know how to design IndexMappings, IndexSettings Models
+#class IndexMappings(models.Model):
+#    class Meta:
+#        db_table = 'index_mappings'
+#
+#
+#class IndexSettings(models.Model):
+#    class Meta:
+#        db_table = 'index_settings'
