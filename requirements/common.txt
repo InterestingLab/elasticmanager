@@ -5,3 +5,4 @@ elasticsearch-curator==3.4.0
 celery>=3.1.0
 redis==2.10.3
 django-celery==3.1.17
+python-dateutil==2.4.2

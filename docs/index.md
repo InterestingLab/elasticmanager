@@ -1,3 +1,10 @@
+## Features
+
+*   support multiple elasticsearch clusters
+
+*   manage hundreds or thousands of indices
+
+
 ## Installation
 
 

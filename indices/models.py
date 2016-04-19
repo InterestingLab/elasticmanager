@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 from django.db import models
 from django_enumfield import enum
+from cluster.models import ElasticCluster
+from django.utils.encoding import python_2_unicode_compatible
 
+@python_2_unicode_compatible
 class IndexSet(models.Model):
 
     class EnumEsIndexTimeInterval(enum.Enum):
@@ -22,69 +25,109 @@ class IndexSet(models.Model):
     #       https://docs.python.org/2.7/library/datetime.html#strftime-strptime-behavior
     index_timestring = models.CharField(max_length=32)
     index_timestring_interval = enum.EnumField(EnumEsIndexTimeInterval, default=EnumEsIndexTimeInterval.DAYS)
-    elasticsearch = models.CharField(max_length=32)
+    elasticsearch = models.ForeignKey(ElasticCluster, on_delete=models.CASCADE)
     created_at = models.DateTimeField()
     status = enum.EnumField(EnumStatus, default=EnumStatus.STARTED)
 
     class Meta:
-        db_table = 'index_set'
+        db_table = 'indices_index_set'
+
+    def __str__(self):
+        return self.name
 
 
-class CreateIndexAction(models.Model):
+@python_2_unicode_compatible
+class Create(models.Model):
     class Meta:
-        db_table = 'create_index_action'
+        db_table = 'indices_create'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     num_in_advance = models.IntegerField()
     # follow the mappings of last existing index
     follow_mappings = models.BooleanField()
 
+    def __str__():
+        return self.index_set
 
-class OptimizeIndexAction(models.Model):
+
+@python_2_unicode_compatible
+class Optimize(models.Model):
     class Meta:
-        db_table = 'optimize_index_action'
+        db_table = 'indices_optimize'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     optimize_after_days = models.IntegerField()
     target_segment_num = models.IntegerField()
 
+    def __str__():
+        return self.index_set
 
-class CloseIndexAction(models.Model):
+
+@python_2_unicode_compatible
+class Close(models.Model):
     class Meta:
-        db_table = 'close_index_action'
+        db_table = 'indices_close'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     close_after_days = models.IntegerField()
 
+    def __str__():
+        return self.index_set
 
-class DeleteIndexAction(models.Model):
+
+@python_2_unicode_compatible
+class Delete(models.Model):
     class Meta:
-        db_table = 'delete_index_action'
+        db_table = 'indices_delete'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     delete_after_days = models.IntegerField()
 
+    def __str__():
+        return self.index_set
 
-class SnapshotIndexAction(models.Model):
+
+@python_2_unicode_compatible
+class Snapshot(models.Model):
     class Meta:
-        db_table = 'snapshot_index_action'
+        db_table = 'indices_snapshot'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
 
+    def __str__():
+        return self.index_set
 
-class AliasIndexAction(models.Model):
+
+@python_2_unicode_compatible
+class Alias(models.Model):
     class Meta:
-        db_table = 'alias_index_action'
+        db_table = 'indices_alias'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
 
+    def __str__():
+        return self.index_set
 
-# I don't know how to design IndexMappings, IndexSettings Models
-#class IndexMappings(models.Model):
-#    class Meta:
-#        db_table = 'index_mappings'
-#
-#
-#class IndexSettings(models.Model):
-#    class Meta:
-#        db_table = 'index_settings'
+
+@python_2_unicode_compatible
+class Mappings(models.Model):
+    class Meta:
+        db_table = 'indices_mappings'
+
+    index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
+    mappings = models.TextField()
+
+    def __str__():
+        return ''
+
+
+@python_2_unicode_compatible
+class Settings(models.Model):
+    class Meta:
+        db_table = 'indices_settings'
+
+    index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
+    settings = models.TextField()
+
+    def __str__():
+        return ''
