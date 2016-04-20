@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
             name='Close',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('close_after_days', models.IntegerField()),
+                ('exec_offset', models.IntegerField()),
             ],
             options={
                 'db_table': 'indices_close',
@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
             name='Create',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('num_in_advance', models.IntegerField()),
+                ('exec_offset', models.IntegerField()),
                 ('follow_mappings', models.BooleanField()),
             ],
             options={
@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
             name='Delete',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('delete_after_days', models.IntegerField()),
+                ('exec_offset', models.IntegerField()),
             ],
             options={
                 'db_table': 'indices_delete',
@@ -83,7 +83,7 @@ class Migration(migrations.Migration):
             name='Optimize',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('optimize_after_days', models.IntegerField()),
+                ('exec_offset', models.IntegerField()),
                 ('target_segment_num', models.IntegerField()),
                 ('index_set', models.OneToOneField(to='indices.IndexSet')),
             ],
@@ -106,6 +106,7 @@ class Migration(migrations.Migration):
             name='Snapshot',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('exec_offset', models.IntegerField()),
                 ('index_set', models.OneToOneField(to='indices.IndexSet')),
             ],
             options={

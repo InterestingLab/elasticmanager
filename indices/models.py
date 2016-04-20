@@ -42,7 +42,7 @@ class Create(models.Model):
         db_table = 'indices_create'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
-    num_in_advance = models.IntegerField()
+    exec_offset = models.IntegerField()
     # follow the mappings of last existing index
     follow_mappings = models.BooleanField()
 
@@ -56,7 +56,7 @@ class Optimize(models.Model):
         db_table = 'indices_optimize'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
-    optimize_after_days = models.IntegerField()
+    exec_offset = models.IntegerField()
     target_segment_num = models.IntegerField()
 
     def __str__():
@@ -69,7 +69,7 @@ class Close(models.Model):
         db_table = 'indices_close'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
-    close_after_days = models.IntegerField()
+    exec_offset = models.IntegerField()
 
     def __str__():
         return self.index_set
@@ -81,7 +81,7 @@ class Delete(models.Model):
         db_table = 'indices_delete'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
-    delete_after_days = models.IntegerField()
+    exec_offset = models.IntegerField()
 
     def __str__():
         return self.index_set
@@ -93,6 +93,7 @@ class Snapshot(models.Model):
         db_table = 'indices_snapshot'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
+    exec_offset = models.IntegerField()
 
     def __str__():
         return self.index_set

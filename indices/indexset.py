@@ -15,7 +15,7 @@ class IndexSet(object):
             self.model.index_name_prefix,
             self.model.index_timestring,
             self.model.index_timestring_interval,
-            self.model.close.close_after_days
+            self.model.close.exec_offset
         )
 
         if len( indices ) > 0:
@@ -24,7 +24,12 @@ class IndexSet(object):
     def create(self):
         import json
 
-        indices = indices_in_days(self.model.create.num_in_advance, self.model.index_name_prefix, self.model.index_timestring, self.model.index_timestring_interval)
+        indices = indices_in_days(
+            self.model.create.exec_offset,
+            self.model.index_name_prefix,
+            self.model.index_timestring,
+            self.model.index_timestring_interval
+        )
 
         settings = json.loads(self.model.settings.settings)
         mappings = json.loads(self.model.mappings.mappings)
@@ -45,7 +50,7 @@ class IndexSet(object):
             self.model.index_name_prefix,
             self.model.index_timestring,
             self.model.index_timestring_interval,
-            self.model.delete.delete_after_days + 1
+            self.model.delete.exec_offset + 1
         )
 
         i = 0
@@ -60,7 +65,7 @@ class IndexSet(object):
             self.model.index_name_prefix,
             self.model.index_timestring,
             self.model.index_timestring_interval,
-            self.model.optimize.optimize_after_days
+            self.model.optimize.exec_offset
         )
 
         for index in indices:
