@@ -36,6 +36,18 @@ class IndexSet(models.Model):
         return self.name
 
 
+class ActionStatus(enum.Enum):
+    """Create, Close, Optimize, Delete, Snapshot, Alias last run status
+    """
+    SUCCESS = 0
+    FAILURE = 1
+
+
+def default_timenow():
+    from datetime import datetime
+    return datetime.now()
+
+
 @python_2_unicode_compatible
 class Create(models.Model):
     class Meta:
@@ -45,6 +57,9 @@ class Create(models.Model):
     exec_offset = models.IntegerField()
     # follow the mappings of last existing index
     follow_mappings = models.BooleanField()
+    last_run_at = models.DateTimeField(default=default_timenow)
+    last_run_status = enum.EnumField(ActionStatus, default=ActionStatus.SUCCESS)
+    last_run_info = models.TextField(default='')
 
     def __str__():
         return self.index_set
