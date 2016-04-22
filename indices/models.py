@@ -44,8 +44,10 @@ class ActionStatus(enum.Enum):
 
 
 def default_timenow():
-    from datetime import datetime
-    return datetime.now()
+    """use django.utils.timezone.now() for timezone aware
+    """
+    from django.utils import timezone
+    return timezone.now()
 
 
 @python_2_unicode_compatible
