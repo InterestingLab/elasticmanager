@@ -4,6 +4,7 @@ from django_enumfield import enum
 from cluster.models import ElasticCluster
 from django.utils.encoding import python_2_unicode_compatible
 
+
 @python_2_unicode_compatible
 class IndexSet(models.Model):
 
@@ -26,7 +27,7 @@ class IndexSet(models.Model):
     index_timestring = models.CharField(max_length=32)
     index_timestring_interval = enum.EnumField(EnumEsIndexTimeInterval, default=EnumEsIndexTimeInterval.DAYS)
     elasticsearch = models.ForeignKey(ElasticCluster, on_delete=models.CASCADE)
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(default=timenow)
     status = enum.EnumField(EnumStatus, default=EnumStatus.STARTED)
 
     class Meta:
@@ -36,18 +37,27 @@ class IndexSet(models.Model):
         return self.name
 
 
-class ActionStatus(enum.Enum):
-    """Create, Close, Optimize, Delete, Snapshot, Alias last run status
-    """
-    SUCCESS = 0
-    FAILURE = 1
+class TaskExec(models.Model):
+    class Meta:
+        db_table = 'indices_tasks'
 
+    class TaskType(enum.Enum):
+        ALIAS = 0
+        CLOSE = 1
+        CREATE = 2
+        DELETE = 3
+        OPTIMIZE = 4
+        SNAPSHOT = 5
 
-def default_timenow():
-    """use django.utils.timezone.now() for timezone aware
-    """
-    from django.utils import timezone
-    return timezone.now()
+    class Status(enum.Enum):
+        SUCCESS = 0
+        FAILURE = 1
+
+    index_set = models.ForeignKey(IndexSet, on_delete=models.CASCADE)
+    type = enum.EnumField(TaskType)
+    last_run_at = models.DateTimeField(default=timenow)
+    last_run_status = enum.EnumField(Status, default=Status.SUCCESS)
+    last_run_info = models.TextField(default='')
 
 
 @python_2_unicode_compatible
@@ -59,9 +69,6 @@ class Create(models.Model):
     exec_offset = models.IntegerField()
     # follow the mappings of last existing index
     follow_mappings = models.BooleanField()
-    last_run_at = models.DateTimeField(default=default_timenow)
-    last_run_status = enum.EnumField(ActionStatus, default=ActionStatus.SUCCESS)
-    last_run_info = models.TextField(default='')
 
     def __str__():
         return self.index_set

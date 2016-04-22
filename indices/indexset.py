@@ -50,13 +50,8 @@ class IndexSetObj(object):
                     indices_created += 1
 
                 elif 'status' in ret and ret['status'] != 400:
-                    self.model.create.last_run_status = ActionStatus.FAILURE
-                    self.model.create.last_run_info = json.dumps(ret)
-                    self.model.create.save()
-                    return indices_created
-
-        self.model.create.last_run_status = ActionStatus.SUCCESS
-        self.model.create.save()
+                    err = json.dumps(ret)
+                    raise CanNotCreateIndex(err)
 
         return indices_created
 
