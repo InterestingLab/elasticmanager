@@ -1,3 +1,9 @@
+def timenow():
+    """use django.utils.timezone.now() for timezone aware
+    """
+    from django.utils import timezone
+    return timezone.now()
+
 
 def select_indices( client, prefix, timestring, time_unit, older_than_days=None, newer_than_days=None ):
     """

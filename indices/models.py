@@ -3,6 +3,7 @@ from django.db import models
 from django_enumfield import enum
 from cluster.models import ElasticCluster
 from django.utils.encoding import python_2_unicode_compatible
+from .utils import timenow
 
 
 @python_2_unicode_compatible

@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='create',
             name='last_run_at',
-            field=models.DateTimeField(default=indices.models.default_timenow),
+            field=models.DateTimeField(default=indices.utils.timenow),
         ),
         migrations.AddField(
             model_name='create',

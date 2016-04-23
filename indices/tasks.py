@@ -4,6 +4,7 @@ from celery import shared_task
 from django.db.models import Q
 from .indexset import IndexSetObj
 from .models import IndexSet
+from .utils import timenow
 
 
 # batch number of creating indices
