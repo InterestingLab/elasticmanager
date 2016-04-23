@@ -59,6 +59,9 @@ def healthy_cluster(**decorator_kwargs):
 CREATE_BATCH = 5
 # batch number of closing indexset
 CLOSE_BATCH = 5
+# batch number of deleting indexset
+DELETE_BATCH = 5
+
 
 @shared_task
 @healthy_cluster()
@@ -130,6 +133,32 @@ def close_indices(clusteri_id):
 
 
 @shared_task
+@healthy_cluster()
 def delete_indices():
-    pass
+    """return number of indices deleted
+    """
+    yesterday = timenow() - timedelta(days=1)
 
+    # filter(indexset__elasticsearch__pk=clusteri_id) join by Indexset and ElasticCluster
+    task_execs = TaskExec.objects \
+                 .filter(indexset__elasticsearch__pk=clusteri_id) \
+                 .filter(type=TaskExec.TaskType.DELETE) \
+                 .filter(Q(last_run_status=TaskExec.Status.FAILURE) | Q(last_run_at__lte=yesterday)) \
+                 .order_by('last_run_at')[:DELETE_BATCH]
+
+    indices_deleted = 0
+    for t in task_execs:
+        iset = IndexSetObj(t.indexset)
+
+        try:
+            indices_deleted += iset.delete()
+            t.last_run_status = TaskExec.Status.SUCCESS
+
+        except CanNotDeleteIndex as e:
+            t.last_run_status = TaskExec.Status.FAILURE
+            t.last_run_info = str(e)
+
+        t.last_run_at = timenow()
+        t.save()
+
+    return indices_deleted

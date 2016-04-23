@@ -8,7 +8,7 @@ from .utils import indices_in_days, select_indices
 class IndexSetObj(object):
     def __init__(self, model):
         self.model = model
-        self.es = self.model.elasticsearch.client()
+        self.es = self.model.elasticsearch.client(timeout=120)
 
     def alias(self):
         pass
@@ -69,7 +69,6 @@ class IndexSetObj(object):
         return indices_created
 
     def delete(self):
-        # index deletion could be slow, set timeout to 60s
         indices = select_indices(
             self.es,
             self.model.index_name_prefix,
@@ -78,11 +77,19 @@ class IndexSetObj(object):
             self.model.delete.exec_offset + 1
         )
 
-        i = 0
-        step = 2
-        while i < len(indices):
-            curator.delete_indices(self.es, indices[ i : i + step ])
-            i += step
+        indices_deleted = 0
+
+        for index in indices:
+            try:
+                ret = curator.delete_indices(self.es, index)
+                if ret is True:
+                    indices_deleted += 1
+                # elif ret is False: index doesn't exist
+
+            except elasticsearch.exceptions.ConnectionTimeout as e:
+                raise CanNotDeleteIndex(str(e))
+
+        return indices_deleted
 
     def optimize(self):
         indices = index_strategy.select_indices(
