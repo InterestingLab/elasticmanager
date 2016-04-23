@@ -1,13 +1,11 @@
+import sys
+import inspect
 from django.contrib import admin
+from django.db import models
+import indices.models
 
-from .models import Alias, Close, Create, Delete, IndexSet, Mappings, Optimize, Settings, Snapshot
 
-admin.site.register(Alias)
-admin.site.register(Close)
-admin.site.register(Create)
-admin.site.register(Delete)
-admin.site.register(IndexSet)
-admin.site.register(Mappings)
-admin.site.register(Optimize)
-admin.site.register(Settings)
-admin.site.register(Snapshot)
+# auto register models to admin site
+for _, cls in inspect.getmembers(indices.models, predicate=inspect.isclass):
+    if cls.__module__ == 'indices.models' and issubclass(cls, models.Model):
+        admin.site.register(cls)
