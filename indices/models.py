@@ -38,6 +38,7 @@ class IndexSet(models.Model):
         return self.name
 
 
+@python_2_unicode_compatible
 class TaskExec(models.Model):
     class Meta:
         db_table = 'indices_tasks'
@@ -54,11 +55,19 @@ class TaskExec(models.Model):
         SUCCESS = 0
         FAILURE = 1
 
-    index_set = models.ForeignKey(IndexSet, on_delete=models.CASCADE)
+    indexset = models.ForeignKey(IndexSet, on_delete=models.CASCADE)
     type = enum.EnumField(TaskType)
     last_run_at = models.DateTimeField(default=timenow)
     last_run_status = enum.EnumField(Status, default=Status.SUCCESS)
     last_run_info = models.TextField(default='')
+
+    def __str__(self):
+        return '[{indexset}] {type}(ed) at {last_run_at}, status:{last_run_status}'.format(
+            indexset=str(self.indexset),
+            type=str(self.type),
+            last_run_at=str(self.last_run_at),
+            last_run_status=str(self.last_run_status)
+        )
 
 
 @python_2_unicode_compatible

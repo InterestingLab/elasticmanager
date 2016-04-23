@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
+from elasticsearch import Elasticsearch
 
 @python_2_unicode_compatible
 class ElasticCluster(models.Model):
@@ -16,3 +17,15 @@ class ElasticCluster(models.Model):
 
     def address(self):
         return '{host}:{port}'.format(host=self.host, port=self.port)
+
+    def client(self):
+        return Elasticsearch(self.address(), timeout=30)
+
+    def health(self):
+        es = self.client()
+        return es.cluster.health()
+
+    def pending_tasks(self):
+        es = self.client()
+        tasks = es.cluster.pending_tasks()
+        return len(tasks), tasks

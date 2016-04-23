@@ -1,7 +1,7 @@
 import json
 from elasticsearch import Elasticsearch
 from .utils import indices_in_days, select_indices
-from .models import ActionStatus
+
 
 class IndexSetObj(object):
     def __init__(self, model):

@@ -1,24 +1,75 @@
 from __future__ import absolute_import
 from datetime import datetime, timedelta
+from functools import wraps
 from celery import shared_task
 from django.db.models import Q
+from cluster.models import ElasticCluster
 from .indexset import IndexSetObj
 from .models import IndexSet
 from .utils import timenow
 
 
+# threshold of healthy elasticsearch cluster in yellow status
+MAX_INITIALIZING_SHARDS = 50
+MAX_UNASSIGNED_SHARDS = 10
+MAX_NUMBER_OF_PENDING_TASKS = 500
+
+
+def healthy_cluster(**decorator_kwargs):
+    """healthy cluster decorator with arguments
+       decorator_kwargs can be:
+           initializing_shards
+           unassigned_shards
+           number_of_pending_tasks
+    """
+
+    default = {
+        'initializing_shards': MAX_INITIALIZING_SHARDS,
+        'unassigned_shards': MAX_UNASSIGNED_SHARDS,
+        'number_of_pending_tasks': MAX_NUMBER_OF_PENDING_TASKS,
+    }
+    decorator_kwargs.update(default)
+
+    def real_decorator(func):
+
+        # functools.wraps() decorator copies all the necessary metadata over from func to the wrapper
+        @wraps(func)
+        def wrapped_func(clusteri_id, *args, **kwargs):
+
+            es = ElasticCluster.objects.get(pk=clusteri_id)
+
+            status =es.health()
+            if status['status'].lower() == 'red' \
+                or (status['status'].lower() == 'yellow' \
+                    and (status['initializing_shards'] > decorator_kwargs['initializing_shards'] \
+                        or status['unassigned_shards'] > decorator_kwargs['unassigned_shards'] \
+                        or status['number_of_pending_tasks'] > decorator_kwargs['number_of_pending_tasks'])):
+
+                return 0
+
+            return func(clusteri_id, *args, **kwargs)
+
+        return wrapped_func
+
+    return real_decorator
+
+
 # batch number of creating indices
 CREATE_BATCH = 5
 
+
 @shared_task
-def create_indices():
-    from django.utils import timezone
+@healthy_cluster()
+def create_indices(clusteri_id):
+    """return number of indices created
+    """
     from .models import TaskExec
 
-    # TODO: check cluster health first and divide create_indices task(arg:cluster) by elasticsearch cluster
+    yesterday = timenow() - timedelta(days=1)
 
-    yesterday = timezone.now() - timedelta(days=1)
+    # filter(indexset__elasticsearch__pk=clusteri_id) join by Indexset and ElasticCluster
     task_execs = TaskExec.objects \
+                 .filter(indexset__elasticsearch__pk=clusteri_id) \
                  .filter(type=TaskExec.TaskType.CREATE) \
                  .filter(Q(last_run_status=TaskExec.Status.FAILURE) | Q(last_run_at__lte=yesterday)) \
                  .order_by('last_run_at')[:CREATE_BATCH]
