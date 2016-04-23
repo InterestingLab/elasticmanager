@@ -14,6 +14,8 @@ class IndexSetObj(object):
         pass
 
     def close(self):
+        """return number of indices closed
+        """
         indices = select_indices(
             self.es,
             self.model.index_name_prefix,
@@ -33,6 +35,8 @@ class IndexSetObj(object):
         return indices_closed
 
     def create(self):
+        """return number of indices created
+        """
         import json
 
         indices = indices_in_days(
@@ -69,6 +73,8 @@ class IndexSetObj(object):
         return indices_created
 
     def delete(self):
+        """return number of indices closed
+        """
         indices = select_indices(
             self.es,
             self.model.index_name_prefix,
@@ -92,6 +98,10 @@ class IndexSetObj(object):
         return indices_deleted
 
     def optimize(self):
+        """return number of indices optimized
+        Index optimization may takes a very long time if index size is huge( more than hundreds of GB).
+        We must not block on this
+        """
         indices = index_strategy.select_indices(
             self.es,
             self.model.index_name_prefix,
@@ -100,9 +110,13 @@ class IndexSetObj(object):
             self.model.optimize.exec_offset
         )
 
+        indices_optimized = 0
+
         for index in indices:
             # Attention: The following code will never returne sometimes and I don't know why, so I set request_timeout to make sure it returns
-            curator.optimize_index(self.es, index, max_num_segments=self.model.optimize.target_segment_num, request_timeout=1200)
-            
+            ret = curator.optimize_index(self.es, index, max_num_segments=self.model.optimize.target_segment_num, request_timeout=1200)
+
+        return indices_optimized
+
     def snapshot(self):
         pass
