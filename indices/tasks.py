@@ -4,8 +4,9 @@ from functools import wraps
 from celery import shared_task
 from django.db.models import Q
 from cluster.models import ElasticCluster
+from .exceptions import *
 from .indexset import IndexSetObj
-from .models import IndexSet
+from .models import IndexSet, TaskExec
 from .utils import timenow
 
 
@@ -54,17 +55,16 @@ def healthy_cluster(**decorator_kwargs):
     return real_decorator
 
 
-# batch number of creating indices
+# batch number of creating indexset
 CREATE_BATCH = 5
-
+# batch number of closing indexset
+CLOSE_BATCH = 5
 
 @shared_task
 @healthy_cluster()
 def create_indices(clusteri_id):
     """return number of indices created
     """
-    from .models import TaskExec
-
     yesterday = timenow() - timedelta(days=1)
 
     # filter(indexset__elasticsearch__pk=clusteri_id) join by Indexset and ElasticCluster
@@ -76,7 +76,7 @@ def create_indices(clusteri_id):
 
     indices_created = 0
     for t in task_execs:
-        iset = IndexSetObj(ex.index_set)
+        iset = IndexSetObj(t.indexset)
 
         try:
             indices_created += iset.create()
@@ -98,8 +98,35 @@ def optimize_indices():
 
 
 @shared_task
-def close_indices():
-    pass
+@healthy_cluster()
+def close_indices(clusteri_id):
+    """return number of indices closed
+    """
+    yesterday = timenow() - timedelta(days=1)
+
+    # filter(indexset__elasticsearch__pk=clusteri_id) join by Indexset and ElasticCluster
+    task_execs = TaskExec.objects \
+                 .filter(indexset__elasticsearch__pk=clusteri_id) \
+                 .filter(type=TaskExec.TaskType.CLOSE) \
+                 .filter(Q(last_run_status=TaskExec.Status.FAILURE) | Q(last_run_at__lte=yesterday)) \
+                 .order_by('last_run_at')[:CLOSE_BATCH]
+
+    indices_closed = 0
+    for t in task_execs:
+        iset = IndexSetObj(t.indexset)
+
+        try:
+            indices_closed += iset.close()
+            t.last_run_status = TaskExec.Status.SUCCESS
+
+        except CanNotCloseIndex as e:
+            t.last_run_status = TaskExec.Status.FAILURE
+            t.last_run_info = str(e)
+
+        t.last_run_at = timenow()
+        t.save()
+
+    return indices_closed
 
 
 @shared_task

@@ -18,8 +18,8 @@ class ElasticCluster(models.Model):
     def address(self):
         return '{host}:{port}'.format(host=self.host, port=self.port)
 
-    def client(self):
-        return Elasticsearch(self.address(), timeout=30)
+    def client(self, timeout=30):
+        return Elasticsearch(self.address(), timeout=timeout)
 
     def health(self):
         es = self.client()

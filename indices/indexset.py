@@ -1,12 +1,14 @@
 import json
-from elasticsearch import Elasticsearch
+import elasticsearch
+import curator
+from .exceptions import *
 from .utils import indices_in_days, select_indices
 
 
 class IndexSetObj(object):
     def __init__(self, model):
         self.model = model
-        self.es = Elasticsearch(self.model.elasticsearch.address(), timeout=60)
+        self.es = self.model.elasticsearch.client()
 
     def alias(self):
         pass
@@ -20,8 +22,15 @@ class IndexSetObj(object):
             self.model.close.exec_offset
         )
 
-        if len( indices ) > 0:
-            return curator.close_indices( self.es, indices )
+        indices_closed = len(indices)
+
+        if indices_closed > 0:
+            try:
+                ret = curator.close_indices( self.es, indices )
+            except elasticsearch.exceptions.ConnectionTimeout as e:
+                raise CanNotCloseIndex(str(e))
+
+        return indices_closed
 
     def create(self):
         import json
@@ -43,8 +52,12 @@ class IndexSetObj(object):
         indices_created = 0
         for index in indices:
             if not self.es.indices.exists(index):
-                # ignore 400 cause by IndexAlreadyExistsException when creating an index
-                ret = self.es.indices.create(index=index, body=conf, ignore=400)
+                try:
+                    # ignore 400 cause by IndexAlreadyExistsException when creating an index
+                    ret = self.es.indices.create(index=index, body=conf, ignore=400)
+                except elasticsearch.exceptions.ConnectionTimeout as e:
+                    raise CanNotCreateIndex(str(e))
+
                 if 'acknowledged' in ret and ret['acknowledged'] == True:
                     # {u'acknowledged': True}
                     indices_created += 1
