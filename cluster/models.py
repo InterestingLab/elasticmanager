@@ -21,6 +21,15 @@ class ElasticCluster(models.Model):
     def client(self, timeout=30):
         return Elasticsearch(self.address(), timeout=timeout)
 
+    def info(self):
+        info = self.client().info()
+        ret = {
+                'cluster_name': info['cluster_name'],
+                'elasticsearch_version': info['version']['number'],
+                'lucene_version': info['version']['lucene_version'],
+        }
+        return ret
+
     def health(self):
         es = self.client()
         return es.cluster.health()
