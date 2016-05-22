@@ -3,8 +3,8 @@ Manage Indices of Elasticsearch
 
 ## Requirements
 
-*   Python2.7, 3.3, 3.4, 3.5
+*   Python 2.7, 3.3, 3.4, 3.5
 
-*   MySQL
+*   (Optional) MySQL
 
-*   Redis >= 2.6
+If you don't want to use default sqlite database, you can configure to use mysql

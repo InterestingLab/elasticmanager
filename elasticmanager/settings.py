@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'kombu.transport.django',
     'djcelery',
     'cluster',
     'indices',
@@ -125,7 +126,9 @@ LOGGING = {
 
 ## Celery Related Settings
 
-BROKER_URL = 'redis://172.16.187.65:9103/0'
+# Using Django ORM API as celery broker has such limitations:
+# http://docs.celeryproject.org/en/latest/getting-started/brokers/django.html
+BROKER_URL = 'django://'
 # set socket_timeout to prevent worker from stopping working,
 # which is fetch task messages from broker, when using redis as broker
 # see https://github.com/celery/celery/issues/1221
