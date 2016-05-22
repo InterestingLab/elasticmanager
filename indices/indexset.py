@@ -102,7 +102,7 @@ class IndexSetObj(object):
         Index optimization may takes a very long time if index size is huge( more than hundreds of GB).
         We must not block on this
         """
-        indices = index_strategy.select_indices(
+        indices = select_indices(
             self.es,
             self.model.index_name_prefix,
             self.model.index_timestring,
