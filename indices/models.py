@@ -71,14 +71,42 @@ class TaskExec(models.Model):
 
 
 @python_2_unicode_compatible
+class Mappings(models.Model):
+    class Meta:
+        db_table = 'indices_mappings'
+
+    mappings = models.TextField()
+
+    def __str__():
+        return ''
+
+
+@python_2_unicode_compatible
+class Settings(models.Model):
+    class Meta:
+        db_table = 'indices_settings'
+
+    settings = models.TextField()
+
+    def __str__():
+        return ''
+      
+
+@python_2_unicode_compatible
 class Create(models.Model):
     class Meta:
         db_table = 'indices_create'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     exec_offset = models.IntegerField()
-    # follow the mappings of last existing index
-    follow_mappings = models.BooleanField()
+    # index settings
+    settings = models.OneToOneField(Settings, on_delete=models.CASCADE, null=True, default=None)
+    # follow the settings of last existing index, not settings specified in this model
+    follow_settings = models.BooleanField(default=True)
+    # index mappings
+    mappings = models.OneToOneField(Mappings, on_delete=models.CASCADE, null=True, default=None)
+    # follow the mappings of last existing index, not mappings specified in this model
+    follow_mappings = models.BooleanField(default=True)
 
     def __str__():
         return self.index_set
@@ -142,27 +170,3 @@ class Alias(models.Model):
 
     def __str__():
         return self.index_set
-
-
-@python_2_unicode_compatible
-class Mappings(models.Model):
-    class Meta:
-        db_table = 'indices_mappings'
-
-    index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
-    mappings = models.TextField()
-
-    def __str__():
-        return ''
-
-
-@python_2_unicode_compatible
-class Settings(models.Model):
-    class Meta:
-        db_table = 'indices_settings'
-
-    index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
-    settings = models.TextField()
-
-    def __str__():
-        return ''
