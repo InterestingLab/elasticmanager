@@ -173,3 +173,27 @@ class Alias(models.Model):
 
     def __str__(self):
         return self.index_set
+
+@python_2_unicode_compatible
+class Replicas(models.Model):
+    class Meta:
+        db_table = 'indices_replicas'
+
+    index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
+    exec_offset = models.IntegerField()
+    target_replica_num = models.IntegerField()
+
+    def __str__():
+        return self.index_set
+
+@python_2_unicode_compatible
+class Replocate(models.Model):
+    class Meta:
+        db_table = 'indices_relocate'
+
+    index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
+    exec_offset = models.IntegerField()
+    target_nodes = models.TextField() #A comma-separated list of node names
+
+    def __str__():
+        return self.index_set

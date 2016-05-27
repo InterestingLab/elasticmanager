@@ -127,3 +127,60 @@ class IndexSetObj(object):
 
     def snapshot(self):
         pass
+
+    def replicas(self):
+        """
+        """
+        indices = select_indices(
+            self.es,
+            self.model.index_name_prefix,
+            self.model.index_timestring,
+            self.model.index_timestring_interval,
+            self.model.replicas.exec_offset
+
+        )
+
+        indices_replicas = 0
+
+        for index in indices:
+            try:
+                ret = curator.change_replicas( self.es, index, replicas=self.model.replicas.target_replica_num)
+            except elasticsearch.exceptions.ConnectionTimeout as e:
+                raise CanNotReplicaIndex(str(e))
+
+            if ret == True:
+                indices_replicas += 1
+            else:
+                raise CanNotReplicaIndex( "replicas error with " + str( index ) )
+
+        return indices_replicas
+
+    def relocate( self ):
+        """
+        """
+        indices = select_indices(
+            self.es,
+            self.model.index_name_prefix,
+            self.model.index_timestring,
+            self.model.index_timestring_interval,
+            self.model.replicas.exec_offset
+
+        )
+
+        indices_relocate = 0
+
+        for index in indices:
+            try:
+                ret = curator.change_replicas( self.es, index, replicas = 0 )
+                if ret == False:
+                    raise CanNotReplicaIndex( "change replica error with " + str(index) )
+                ret = curator.allocation( self.es, indices=index, rule=self.model.relocate.target_nodes, allocation_type="include" )
+            except elasticsearch.exceptions.ConnectionTimeout as e:
+                raise CanNotRelocateIndex(str(e))
+
+                if ret == True:
+                    indices_relocate += 1
+                else:
+                    raise CanNotRelocateIndex( "relocate index error with " + str(index) )
+
+        return indices_relocate
