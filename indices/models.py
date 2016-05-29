@@ -77,7 +77,7 @@ class Mappings(models.Model):
 
     mappings = models.TextField()
 
-    def __str__():
+    def __str__(self):
         return ''
 
 
@@ -88,7 +88,7 @@ class Settings(models.Model):
 
     settings = models.TextField()
 
-    def __str__():
+    def __str__(self):
         return ''
       
 
@@ -108,7 +108,7 @@ class Create(models.Model):
     # follow the mappings of last existing index, not mappings specified in this model
     follow_mappings = models.BooleanField(default=True)
 
-    def __str__():
+    def __str__(self):
         return self.index_set
 
 
@@ -121,7 +121,7 @@ class Optimize(models.Model):
     exec_offset = models.IntegerField()
     target_segment_num = models.IntegerField()
 
-    def __str__():
+    def __str__(self):
         return self.index_set
 
 
@@ -133,7 +133,7 @@ class Close(models.Model):
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     exec_offset = models.IntegerField()
 
-    def __str__():
+    def __str__(self):
         return self.index_set
 
 
@@ -145,7 +145,7 @@ class Delete(models.Model):
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     exec_offset = models.IntegerField()
 
-    def __str__():
+    def __str__(self):
         return self.index_set
 
 
@@ -157,7 +157,7 @@ class Snapshot(models.Model):
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     exec_offset = models.IntegerField()
 
-    def __str__():
+    def __str__(self):
         return self.index_set
 
 
@@ -168,5 +168,5 @@ class Alias(models.Model):
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
 
-    def __str__():
+    def __str__(self):
         return self.index_set
