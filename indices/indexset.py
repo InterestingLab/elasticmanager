@@ -128,7 +128,7 @@ class IndexSetObj(object):
     def snapshot(self):
         pass
 
-    def replicas(self):
+    def replicate(self):
         """
         """
         indices = select_indices(
@@ -140,22 +140,22 @@ class IndexSetObj(object):
 
         )
 
-        indices_replicas = 0
+        indices_replicated = 0
 
         for index in indices:
             try:
                 ret = curator.change_replicas( self.es, index, replicas=self.model.replicas.target_replica_num)
             except elasticsearch.exceptions.ConnectionTimeout as e:
-                raise CanNotReplicaIndex(str(e))
+                raise CanNotReplicateIndex(str(e))
 
             if ret == True:
-                indices_replicas += 1
+                indices_replicated += 1
             else:
-                raise CanNotReplicaIndex( "replicas error with " + str( index ) )
+                raise CanNotReplicateIndex("replicate error with " + str( index ))
 
-        return indices_replicas
+        return indices_replicated
 
-    def relocate( self ):
+    def relocate(self):
         """
         """
         indices = select_indices(
@@ -167,20 +167,22 @@ class IndexSetObj(object):
 
         )
 
-        indices_relocate = 0
+        indices_relocated = 0
 
         for index in indices:
             try:
                 ret = curator.change_replicas( self.es, index, replicas = 0 )
                 if ret == False:
-                    raise CanNotReplicaIndex( "change replica error with " + str(index) )
-                ret = curator.allocation( self.es, indices=index, rule=self.model.relocate.target_nodes, allocation_type="include" )
+                    raise CanNotRelocateIndex( "change replicas error with " + str(index) )
+
+                ret_name = curator.allocation( self.es, indices=index, rule="name=" + self.model.relocate.target_names, allocation_type="include" )
+                ret_tag = curator.allocation( self.es, indices=index, rule="tag=" + self.model.relocate.target_tags, allocation_type="include" )
+                ret_rack = curator.allocation( self.es, indices=index, rule="rack=" + self.model.relocate.target_racks, allocation_type="include" )
+                if ret_name == True or ret_tag == True or ret_rack == True:
+                    indices_relocated += 1
+                #elif ret is Fales: Try to modify the configuration of the same as before
+
             except elasticsearch.exceptions.ConnectionTimeout as e:
                 raise CanNotRelocateIndex(str(e))
 
-                if ret == True:
-                    indices_relocate += 1
-                else:
-                    raise CanNotRelocateIndex( "relocate index error with " + str(index) )
-
-        return indices_relocate
+        return indices_relocated

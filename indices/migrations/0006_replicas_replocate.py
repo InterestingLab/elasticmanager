@@ -28,7 +28,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('exec_offset', models.IntegerField()),
-                ('target_nodes', models.TextField()),
+                ('target_names', models.TextField()),
+                ('target_tags', models.TextField()),
+                ('target_racks', models.TextField()),
                 ('index_set', models.OneToOneField(to='indices.IndexSet')),
             ],
             options={

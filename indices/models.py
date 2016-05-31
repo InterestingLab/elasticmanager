@@ -183,7 +183,7 @@ class Replicas(models.Model):
     exec_offset = models.IntegerField()
     target_replica_num = models.IntegerField()
 
-    def __str__():
+    def __str__(self):
         return self.index_set
 
 @python_2_unicode_compatible
@@ -193,7 +193,9 @@ class Replocate(models.Model):
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     exec_offset = models.IntegerField()
-    target_nodes = models.TextField() #A comma-separated list of node names
+    target_names = models.TextField() #A comma-separated list of node names
+    target_tags = models.TextField() #A comma-separated list of node tags
+    target_racks = models.TextField() #A comma-separated list of node racks
 
-    def __str__():
+    def __str__(self):
         return self.index_set
