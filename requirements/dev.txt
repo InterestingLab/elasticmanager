@@ -1,1 +1,6 @@
 -r common.txt
+flake8
+pep8-naming
+flake8-import-order
+flake8-todo
+flake8-quotes
