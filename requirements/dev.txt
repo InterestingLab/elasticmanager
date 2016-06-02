@@ -1,6 +1,7 @@
 -r common.txt
-flake8
-pep8-naming
-flake8-import-order
-flake8-todo
-flake8-quotes
+pep8==1.7.0
+flake8==2.5.4
+pep8-naming==0.3.3
+flake8-import-order==0.8
+flake8-todo==0.4
+flake8-quotes==0.3.0
