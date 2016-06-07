@@ -1,8 +1,11 @@
 from __future__ import unicode_literals
+
 from django.db import models
 from django_enumfield import enum
-from cluster.models import ElasticCluster
+
+from cluster.models import ElasticCluster # flake8: noqa
 from django.utils.encoding import python_2_unicode_compatible
+
 from .utils import timenow
 
 

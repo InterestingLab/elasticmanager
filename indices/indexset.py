@@ -1,7 +1,9 @@
 import json
-import elasticsearch
+
 import curator
-from .exceptions import *
+import elasticsearch
+
+from .exceptions import CanNotCloseIndex, CanNotCreateIndex, CanNotDeleteIndex
 from .utils import indices_in_days, select_indices
 
 
@@ -28,7 +30,7 @@ class IndexSetObj(object):
 
         if indices_closed > 0:
             try:
-                ret = curator.close_indices( self.es, indices )
+                ret = curator.close_indices(self.es, indices)
             except elasticsearch.exceptions.ConnectionTimeout as e:
                 raise CanNotCloseIndex(str(e))
 
@@ -37,7 +39,6 @@ class IndexSetObj(object):
     def create(self):
         """return number of indices created
         """
-        import json
 
         indices = indices_in_days(
             self.model.create.exec_offset,
@@ -62,7 +63,7 @@ class IndexSetObj(object):
                 except elasticsearch.exceptions.ConnectionTimeout as e:
                     raise CanNotCreateIndex(str(e))
 
-                if 'acknowledged' in ret and ret['acknowledged'] == True:
+                if 'acknowledged' in ret and ret['acknowledged'] is True:
                     # {u'acknowledged': True}
                     indices_created += 1
 
@@ -113,8 +114,14 @@ class IndexSetObj(object):
         indices_optimized = 0
 
         for index in indices:
-            # Attention: The following code will never returne sometimes and I don't know why, so I set request_timeout to make sure it returns
-            ret = curator.optimize_index(self.es, index, max_num_segments=self.model.optimize.target_segment_num, request_timeout=1200)
+            # Attention: The following code will never returne sometimes and I don't know why,
+            # so I set request_timeout to make sure it returns
+            ret = curator.optimize_index(
+                self.es,
+                index,
+                max_num_segments=self.model.optimize.target_segment_num,
+                request_timeout=1200
+            )
 
         return indices_optimized
 

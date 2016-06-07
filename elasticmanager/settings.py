@@ -108,23 +108,23 @@ STATIC_URL = '/static/'
 LOGGING = {
     'version': 1,
     'handlers': {
-        'console':{
-            'level':'DEBUG',
-            'class':'logging.StreamHandler',
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
         },
     },
     'loggers': {
         'django.request': {
-            'handlers':['console'],
+            'handlers': ['console'],
             'propagate': True,
-            'level':'DEBUG',
+            'level': 'DEBUG',
         }
     },
 }
 
-## --- End of Django Config ---
+# --- End of Django Config ---
 
-## Celery Related Settings
+# Celery Related Settings
 
 # Using Django ORM API as celery broker has such limitations:
 # http://docs.celeryproject.org/en/latest/getting-started/brokers/django.html
@@ -132,7 +132,7 @@ BROKER_URL = 'django://'
 # set socket_timeout to prevent worker from stopping working,
 # which is fetch task messages from broker, when using redis as broker
 # see https://github.com/celery/celery/issues/1221
-BROKER_TRANSPORT_OPTIONS = { 'socket_timeout': 30 }
+BROKER_TRANSPORT_OPTIONS = {'socket_timeout': 30}
 
 CELERY_RESULT_BACKEND = 'redis://172.16.187.65:9103/0'
 
@@ -147,12 +147,11 @@ CELERYD_PREFETCH_MULTIPLIER = 1
 
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
-## --- End of Celery Config ---
+# --- End of Celery Config ---
 
-## django-celery config
+# django-celery config
 
 import djcelery
 djcelery.setup_loader()
 
-## --- End of django-celery Config ---
-
+# --- End of django-celery Config ---

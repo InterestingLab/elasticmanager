@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from elasticsearch import Elasticsearch
 
+
 @python_2_unicode_compatible
 class ElasticCluster(models.Model):
     class Meta:
@@ -24,9 +25,9 @@ class ElasticCluster(models.Model):
     def info(self):
         info = self.client().info()
         ret = {
-                'cluster_name': info['cluster_name'],
-                'elasticsearch_version': info['version']['number'],
-                'lucene_version': info['version']['lucene_version'],
+            'cluster_name': info['cluster_name'],
+            'elasticsearch_version': info['version']['number'],
+            'lucene_version': info['version']['lucene_version'],
         }
         return ret
 

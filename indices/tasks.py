@@ -1,10 +1,12 @@
 from __future__ import absolute_import
-from datetime import datetime, timedelta
+
+from datetime import timedelta
 from functools import wraps
+
 from celery import shared_task
 from django.db.models import Q
-from cluster.models import ElasticCluster
-from .exceptions import *
+from cluster.models import ElasticCluster # flake8: noqa
+from .exceptions import CanNotCloseIndex, CanNotCreateIndex, CanNotDeleteIndex
 from .indexset import IndexSetObj
 from .models import IndexSet, TaskExec
 from .utils import timenow
