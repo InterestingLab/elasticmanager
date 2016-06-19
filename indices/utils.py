@@ -87,3 +87,43 @@ def _relativedelta_months():
 
 def _relativedelta_years():
     return relativedelta.relativedelta(years=1)
+
+
+def search_leaf_node(client, index, node_content, prefix):
+    if type(node_content) is dict:
+        for son_node in node_content:
+            if not search_leaf_node(client, index, node_content[son_node], prefix + "." + son_node):
+                return False
+        return True
+    else:
+        try:
+            client.indices.put_settings(
+                index=index,
+                body=prefix + "=",
+            )
+            return True
+        except:
+            """
+            Todo: Here need  logger for reason[Debug]
+            """
+            return False
+
+
+def reset_allocation(client, indices):
+    for index in indices:
+        settings = client.indices.get_settings(
+            index=index,
+        )
+        try:
+            allocation_settings = settings[index]['settings']['index']['routing']['allocation']
+            if not search_leaf_node(client, index, allocation_settings, "index.routing.allocation"):
+                return False
+        except KeyError:
+            """
+            When the index after the initialization,
+            it may not have allocation configuration in the settings,
+            So,
+            If raised KeyError, Don't needing to reset.
+            """
+            pass
+    return True

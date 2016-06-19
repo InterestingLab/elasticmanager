@@ -175,9 +175,9 @@ class Alias(models.Model):
         return self.index_set
 
 @python_2_unicode_compatible
-class Replicas(models.Model):
+class Replicate(models.Model):
     class Meta:
-        db_table = 'indices_replicas'
+        db_table = 'indices_replicate'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     exec_offset = models.IntegerField()
@@ -187,15 +187,19 @@ class Replicas(models.Model):
         return self.index_set
 
 @python_2_unicode_compatible
-class Replocate(models.Model):
+class Relocate(models.Model):
     class Meta:
         db_table = 'indices_relocate'
 
     index_set = models.OneToOneField(IndexSet, on_delete=models.CASCADE)
     exec_offset = models.IntegerField()
-    target_names = models.TextField() #A comma-separated list of node names
-    target_tags = models.TextField() #A comma-separated list of node tags
-    target_racks = models.TextField() #A comma-separated list of node racks
-
+    target_allocation_config = models.TextField() 
+    """
+    target_allocation_config: A json string like
+            {
+                "include":"rack:r1,rack:r2,name:node-1,tag:ssd",
+                "exclude":"rack:r2",
+            }
+    """
     def __str__(self):
         return self.index_set

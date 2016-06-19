@@ -25,8 +25,10 @@ class CanNotOptimizeIndex(IndexSetError):
 class CanNotSnapshotIndex(IndexSetError):
     pass
 
+
 class CanNotReplicateIndex(IndexSetError):
     pass
+
 
 class CanNotRelocateIndex(IndexSetError):
     pass

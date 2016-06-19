@@ -3,8 +3,8 @@ import json
 import curator
 import elasticsearch
 
-from .exceptions import CanNotCloseIndex, CanNotCreateIndex, CanNotDeleteIndex
-from .utils import indices_in_days, select_indices
+from .exceptions import CanNotCloseIndex, CanNotCreateIndex, CanNotDeleteIndex, CanNotRelocateIndex, CanNotReplicateIndex
+from .utils import indices_in_days, reset_allocation, select_indices
 
 
 class IndexSetObj(object):
@@ -144,14 +144,14 @@ class IndexSetObj(object):
 
         for index in indices:
             try:
-                ret = curator.change_replicas( self.es, index, replicas=self.model.replicas.target_replica_num)
+                ret = curator.change_replicas(self.es, index, replicas=self.model.replicas.target_replica_num)
             except elasticsearch.exceptions.ConnectionTimeout as e:
                 raise CanNotReplicateIndex(str(e))
 
-            if ret == True:
+            if ret:
                 indices_replicated += 1
             else:
-                raise CanNotReplicateIndex("replicate error with " + str( index ))
+                raise CanNotReplicateIndex("replicate error with " + str(index))
 
         return indices_replicated
 
@@ -163,26 +163,33 @@ class IndexSetObj(object):
             self.model.index_name_prefix,
             self.model.index_timestring,
             self.model.index_timestring_interval,
-            self.model.replicas.exec_offset
-
+            self.model.relocate.exec_offset,
         )
 
-        indices_relocated = 0
+        target_allocation_config = eval(self.model.relocate.target_allocation_config)
+        if not reset_allocation(self.es, indices):
+            raise CanNotRelocateIndex("Can't initialize allocation configuration of the past")
+        attributes = dict()
+        for allocation_type in target_allocation_config:
+            attributes[allocation_type] = dict()
+            for attribute in target_allocation_config[allocation_type].split(','):
+                key, value = attribute.split(':')
+                value += ','
+                if key in attributes[allocation_type]:
+                    attributes[allocation_type][key] += value
+                else:
+                    attributes[allocation_type][key] = value
 
         for index in indices:
-            try:
-                ret = curator.change_replicas( self.es, index, replicas = 0 )
-                if ret == False:
-                    raise CanNotRelocateIndex( "change replicas error with " + str(index) )
+            for allocation_type in attributes:
+                for attribute in attributes[allocation_type]:
+                    try:
+                        curator.allocation(
+                            self.es,
+                            indices=index,
+                            rule="{0}={1}".format(attribute, attributes[allocation_type][attribute]),
+                            allocation_type=allocation_type
+                        )
 
-                ret_name = curator.allocation( self.es, indices=index, rule="name=" + self.model.relocate.target_names, allocation_type="include" )
-                ret_tag = curator.allocation( self.es, indices=index, rule="tag=" + self.model.relocate.target_tags, allocation_type="include" )
-                ret_rack = curator.allocation( self.es, indices=index, rule="rack=" + self.model.relocate.target_racks, allocation_type="include" )
-                if ret_name == True or ret_tag == True or ret_rack == True:
-                    indices_relocated += 1
-                #elif ret is Fales: Try to modify the configuration of the same as before
-
-            except elasticsearch.exceptions.ConnectionTimeout as e:
-                raise CanNotRelocateIndex(str(e))
-
-        return indices_relocated
+                    except elasticsearch.exceptions.ConnectionTimeout as e:
+                        raise CanNotRelocateIndex(str(e))
